@@ -6,6 +6,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class MainRestController {
@@ -42,8 +44,9 @@ public class MainRestController {
     private static final Logger log = Logger.getLogger(MainRestController.class);
 
     // using RestTemplate
+    @Async
     @GetMapping("/usd")
-    public Rate getCurrentUsd() {
+    public CompletableFuture<Rate> getCurrentUsd() {
         log.info("Get USD/UAH from API");
         RestTemplate restTemplate = new RestTemplate();
         Currency[] currencies = restTemplate.getForObject(currentUsdLink, Currency[].class);
@@ -55,12 +58,13 @@ public class MainRestController {
             log.error(e);
         }
         log.info("Return USD/UAH to user");
-        return new Rate(result);
+        return CompletableFuture.completedFuture(new Rate(result));
     }
 
     // using DOM XML
+    @Async
     @GetMapping("/eur/{date}")
-    public Rate getEur(@PathVariable String date) {
+    public CompletableFuture<Rate> getEur(@PathVariable String date) {
         log.info("Get EUR/UAH from API by date " + date);
         DomParser domParser = new DomParser();
         String result = "error";
@@ -71,12 +75,13 @@ public class MainRestController {
             log.error(e);
         }
         log.info("Return EUR/UAH to user");
-        return new Rate(result);
+        return CompletableFuture.completedFuture(new Rate(result));
     }
 
     // using jackson
+    @Async
     @GetMapping("/best_rate/{currency}/{interval}")
-    public Rate getBestRate(@PathVariable String currency, @PathVariable TimeInterval interval) {
+    public CompletableFuture<Rate> getBestRate(@PathVariable String currency, @PathVariable TimeInterval interval) {
         log.info("Get best rate of " + currency + "/UAH from API in interval " + interval);
         ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         String result = "error";
@@ -103,7 +108,7 @@ public class MainRestController {
             result = "Currency with code " + currency + " not found";
         }
         log.info("Return result to user");
-        return new Rate(result);
+        return CompletableFuture.completedFuture(new Rate(result));
     }
 
     private String calculateBestRate(String currency, int times, ObjectMapper mapper) throws IOException {
@@ -122,8 +127,9 @@ public class MainRestController {
     }
 
     // using org.json
+    @Async
     @GetMapping("/btc")
-    public Rate getCurrentBtc() {
+    public CompletableFuture<Rate> getCurrentBtc() {
         log.info("Get BTC/UAH from API");
         String result = "error";
         try {
@@ -135,6 +141,6 @@ public class MainRestController {
             log.error(e);
         }
         log.info("Return BTC/UAH to user");
-        return new Rate(result);
+        return CompletableFuture.completedFuture(new Rate(result));
     }
 }
