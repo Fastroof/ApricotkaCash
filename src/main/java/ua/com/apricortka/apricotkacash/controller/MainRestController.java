@@ -2,6 +2,7 @@ package ua.com.apricortka.apricotkacash.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,10 +39,12 @@ public class MainRestController {
     private String alphaVantageApiKey;
 
     private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private static final Logger log = Logger.getLogger(MainRestController.class);
 
     // using RestTemplate
     @GetMapping("/usd")
     public Rate getCurrentUsd() {
+        log.info("Get USD/UAH from API");
         RestTemplate restTemplate = new RestTemplate();
         Currency[] currencies = restTemplate.getForObject(currentUsdLink, Currency[].class);
         String result = "error";
@@ -49,27 +52,32 @@ public class MainRestController {
             assert currencies != null;
             result = String.valueOf(currencies[0].getRate());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
+        log.info("Return USD/UAH to user");
         return new Rate(result);
     }
 
     // using DOM XML
     @GetMapping("/eur/{date}")
     public Rate getEur(@PathVariable String date) {
+        log.info("Get EUR/UAH from API by date " + date);
         DomParser domParser = new DomParser();
         String result = "error";
         try {
             result = domParser.parseRate(eurLink + date);
+            log.info("Parse is OK");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
+        log.info("Return EUR/UAH to user");
         return new Rate(result);
     }
 
     // using jackson
     @GetMapping("/best_rate/{currency}/{interval}")
     public Rate getBestRate(@PathVariable String currency, @PathVariable TimeInterval interval) {
+        log.info("Get best rate of " + currency + "/UAH from API in interval " + interval);
         ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
         String result = "error";
         try {
@@ -91,9 +99,10 @@ public class MainRestController {
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
             result = "Currency with code " + currency + " not found";
         }
+        log.info("Return result to user");
         return new Rate(result);
     }
 
@@ -115,6 +124,7 @@ public class MainRestController {
     // using org.json
     @GetMapping("/btc")
     public Rate getCurrentBtc() {
+        log.info("Get BTC/UAH from API");
         String result = "error";
         try {
             URL url = new URL(alphaVantageApiBtc + alphaVantageApiKey);
@@ -122,8 +132,9 @@ public class MainRestController {
             JSONObject root = new JSONObject(tokener);
             result = root.getJSONObject("Realtime Currency Exchange Rate").getString("5. Exchange Rate");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
+        log.info("Return BTC/UAH to user");
         return new Rate(result);
     }
 }

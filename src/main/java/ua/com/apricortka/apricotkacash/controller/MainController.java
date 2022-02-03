@@ -1,5 +1,6 @@
 package ua.com.apricortka.apricotkacash.controller;
 
+import org.apache.log4j.Logger;
 import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFParagraph;
@@ -15,8 +16,11 @@ import java.util.Objects;
 @Controller
 public class MainController {
 
+    private static final Logger log = Logger.getLogger(MainController.class);
+
     @GetMapping(value="/download/text={text}&result={result}")
     public void downloadDocx(@PathVariable String text, @PathVariable String result, HttpServletResponse response) {
+        log.info("Downloading docx file");
         try {
             XWPFDocument document = new XWPFDocument(Objects.requireNonNull(MainController.class.getClassLoader().getResourceAsStream("templates/docx/temp.docx")));
 
@@ -34,7 +38,7 @@ public class MainController {
             response.setHeader("Content-Disposition","attachment; filename=result.docx");
             document.write(response.getOutputStream());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e);
         }
     }
 }

@@ -1,5 +1,6 @@
 package ua.com.apricortka.apricotkacash.parser;
 
+import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -12,7 +13,10 @@ import java.net.URLConnection;
 
 public class DomParser {
 
+    private static final Logger log = Logger.getLogger(DomParser.class);
+
     public String parseRate(String url) throws ParserConfigurationException, IOException, SAXException {
+        log.info("Try parse EUR");
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         URLConnection urlConnection = new URL(url).openConnection();
