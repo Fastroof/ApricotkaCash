@@ -43,6 +43,13 @@ public class MainRestController {
     private final DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final Logger log = Logger.getLogger(MainRestController.class);
 
+    @Async
+    @GetMapping("")
+    public CompletableFuture<String> mainPage() {
+        log.info("Слава Україні!");
+        return CompletableFuture.completedFuture("Слава Україні!");
+    }
+
     // using RestTemplate
     @Async
     @GetMapping("/usd")
